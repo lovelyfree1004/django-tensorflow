@@ -68,7 +68,7 @@ class Reader(ReaderBase):
         return json.load(open(f'{self.new_file(file)}.json', encoding='UTF-8'))
 
     def gmaps(self) -> object:
-        return googlemaps.Client(key='')
+        return googlemaps.Client(key='AIzaSyBlFNHA2GVbUuazKPvGYO9oYY2UVUSs78E')
 
 class Printer(PrinterBase):
 
@@ -82,6 +82,8 @@ class Printer(PrinterBase):
         print('*' * 100)
 
 '''
+
+crime_in_seoul
 ****************************************************************************************************
 1. Target type 
  <class 'pandas.core.frame.DataFrame'> 
@@ -110,7 +112,49 @@ class Printer(PrinterBase):
 dtype: int64개
 ****************************************************************************************************
 
-Process finished with exit code 0
+cctv_in_seoul
+****************************************************************************************************
+1. Target type 
+ <class 'pandas.core.frame.DataFrame'> 
+2. Target column 
+ Index(['기관명', '소계', '2013년도 이전', '2014년', '2015년', '2016년'], dtype='object') 
+3. Target top 1개 행
+    기관명    소계  2013년도 이전  2014년  2015년  2016년
+0  강남구  2780       1292    430    584    932 
+4. Target bottom 1개 행
+     기관명   소계  2013년도 이전  2014년  2015년  2016년
+24  중랑구  660        509    121    177    109 
+5. Target null 의 갯수
+ 기관명          0
+소계           0
+2013년도 이전    0
+2014년        0
+2015년        0
+2016년        0
+dtype: int64개
+****************************************************************************************************
+
+pop_in_seoul
+****************************************************************************************************
+1. Target type 
+ <class 'pandas.core.frame.DataFrame'> 
+2. Target column 
+ Index(['자치구', '계', '계.1', '계.2', '65세이상고령자'], dtype='object') 
+3. Target top 1개 행
+   자치구           계        계.1       계.2   65세이상고령자
+0  합계  10197604.0  9926968.0  270636.0  1321458.0 
+4. Target bottom 1개 행
+     자치구   계  계.1  계.2  65세이상고령자
+26  NaN NaN  NaN  NaN       NaN 
+5. Target null 의 갯수
+ 자치구         1
+계           1
+계.1         1
+계.2         1
+65세이상고령자    1
+dtype: int64개
+****************************************************************************************************
+
 
 '''
 
@@ -132,16 +176,50 @@ class Service(Reader):
         file.context = './data/'
         file.fname = 'crime_in_seoul'
         crime = reader.csv(file)
-        #printer.dframe(crime)
+        # printer.dframe(crime)
         station_names = []
-        for name in crime['관서명']
+        for name in crime['관서명']:
             station_names.append('서울' + str(name[:-1] + '경찰서'))
         station_addrs = []
         station_lats = []
         station_lngs = []
         gmaps = reader.gmaps()
+        for name in station_names:
+            temp = gmaps.geocode(name, language='KO')
+            station_addrs.append(temp[0].get('formatted_address'))
+            t_loc = tmep[0].get('geometry')
+            station_lats.append(t_loc['location']['lat'])
+            station_lats.append(t_loc['location']['lng'])
+            print(f'name{temp[0].get("formatted_address")}')
+        gu_names = []
+        for name in station_addrs:
+            t = name.split()
+            gu_name = [gu for gu in t if gu[-1] == '구'][0]
+            gu_names.append(gu_name)
+        crime['구분'] = gu_names
+        # 구와 경철서 위치가 다른 경우 수작업
+        crime.loc[crime['관서명'] == '혜화서', ['구별']] == '종로구'
+        crime.loc[crime['관서명'] == '서부서', ['구별']] == '은평구'
+        crime.loc[crime['관서명'] == '강서서', ['구별']] == '양천구'
+        crime.loc[crime['관서명'] == '종암서', ['구별']] == '성북구'
+        crime.loc[crime['관서명'] == '방배서', ['구별']] == '서초구'
+        crime.loc[crime['관서명'] == '수서서', ['구별']] == '강남구'
+        crime.to_csv('./saved_data/police_pos.csv')
+
+    def save_cctv_pop(self):
+        file = self.file
+        reader = self.reader
+        printer = self.printer
+        file.context = './data/'
+        file.fname = 'cctv_in_seoul'
+        cctv = reader.csv(file)
+        # printer.dframe(cctv)
+        file.fname = 'pop_in_seoul'
+        pop = reader.xls(file, 2, 'B, D, G, J, N')
+        # printer.dframe(pop)
 
 if __name__ == '__main__':
 
     s = Service()
-    s.save_police_pos()
+    #s.save_police_pos()
+    s.save_cctv_pop()
