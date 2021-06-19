@@ -21,7 +21,7 @@ class CatMosaic(object):
         cv2.imwrite('cat-mosaic.png', mos)
         cv2.imshow('CAT', mos)
         cv2.waitKey(0)
-        cv2.destroyWindow()
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':

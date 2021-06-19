@@ -19,7 +19,7 @@ class FaceDetect(object):
         cv2.imwrite('./saved-data/girl-face.png', img)
         cv2.imshow('./saved-data/girl-face', img)
         cv2.waitKey(0)
-        cv2.destroyAllWindow()
+        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     f = FaceDetect()
