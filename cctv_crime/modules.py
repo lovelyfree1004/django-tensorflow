@@ -70,7 +70,7 @@ class Reader(ReaderBase):
         return json.load(open(f'{self.new_file(file)}.json', encoding='UTF-8'))
 
     def gmaps(self) -> object:
-        return googlemaps.Client(key='AIzaSyCmfXM1pd-g-WsNCdWNJwfMOuFR828y5IE')
+        return googlemaps.Client(key='')
 
 class Printer(PrinterBase):
     def dframe(self, this):
